@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --account=def-aameer
 #SBATCH --nodes=1                 # Number of nodes
-#SBATCH --gpus-per-node=v100l:4   # Number and type of GPU(s) per node. Check out this link for GPU types in the clusters https://docs.alliancecan.ca/wiki/Using_GPUs_with_Slurm
+#SBATCH --gpus-per-node=v100l:4   # Number and type of GPU(s) per node. (This job script doesn't do multiple node communication so keep it 1 node)
 #SBATCH --ntasks-per-node=8       # CPU cores/threads
-#SBATCH --mem=4G                  # Total memory 
+#SBATCH --mem=16G                 # Total memory 
 #SBATCH --time=00-10:00           # time (DD-HH:MM)
 
 # Variables
@@ -51,7 +51,7 @@ pip install triton==2.0.0
 python -c "import torch; print('CUDA available:', torch.cuda.is_available()); print('Device:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU')"
 
 # Start task
-python miniGPT.py
+python train.py
 
 # Cleaning up
 deactivate
