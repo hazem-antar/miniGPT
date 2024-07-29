@@ -12,18 +12,18 @@ mode = 'train'    # 'train' for training a new model and then generate a sample,
 initial_text = "The red fox"  # Initial text to use for generating
 sample_size = 300
 
-# Configuration parameters (Carefully tune the hyperparameters and do pre-training checks because GPU memory saturates very quickly)
-seq_len = 128      # Maximum length of input sequences
-batch_size = 128  # Batch size for training
-dropout = 0.2
+# Configuration parameters (Be careful with increasing parameters because GPU memory saturates very quickly)
+seq_len = 256      # Maximum length of input sequences
+batch_size = 32  # Batch size for training
+dropout = 0.1
 epochs = 200  # Number of training epochs
-lr = 1e-5     # Learning rate
+lr = 3e-5     # Learning rate
 patience = 5  # Early stopping patience
 
 # Configuration parameters for experimentation
-embed_dim = 128  # Embedding dimension for each token
-num_heads = 16  # Number of attention heads
-n_layers = 32  # Number of transformer blocks
+embed_dim = 768  # Embedding dimension for each token
+num_heads = 12  # Number of attention heads
+n_layers = 12  # Number of transformer blocks
 
 # Load the WikiText-2 dataset
 dataset = load_dataset("wikitext", "wikitext-2-raw-v1", split={'train': 'train[:80%]', 'test': 'test[:20%]'})
@@ -152,7 +152,7 @@ class MiniGPT(nn.Module):
 # Instantiate the model, loss function, and optimizer
 model = MiniGPT(seq_len, vocab_size, embed_dim, num_heads, n_layers)
 criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_token_id)
-optimizer = optim.Adam(model.parameters(), lr=lr)
+optimizer = optim.AdamW(model.parameters(), lr=lr)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("\nDevice:", device)
@@ -171,6 +171,7 @@ print(f"Embedding Dimension: {embed_dim}")
 print(f"Number of Attention Heads: {num_heads}")
 print(f"Number of Layers: {n_layers}")
 print(f"Batch Size: {batch_size}")
+print(f"Learning Rate: {lr}")
 print(f"Number of Epochs: {epochs}")
 print(f"Early Stopping Patience: {patience}\n")
 
@@ -204,6 +205,9 @@ def train_and_validate():
             loss.backward()
             optimizer.step()
             train_loss += loss.item() * x_batch.size(0)
+            
+            # Clear CUDA cache
+            torch.cuda.empty_cache()
 
         train_loss /= len(train_iter.dataset)
 
@@ -217,6 +221,9 @@ def train_and_validate():
                 outputs = outputs[:, :-1, :].contiguous().view(-1, vocab_size)
                 loss = criterion(outputs, targets)
                 val_loss += loss.item() * x_batch.size(0)
+                
+                # Clear CUDA cache
+                torch.cuda.empty_cache()
 
         val_loss /= len(valid_iter.dataset)
         end_time = time.time()
@@ -234,6 +241,9 @@ def train_and_validate():
             if patience_counter >= patience:
                 print("Early stopping due to no improvement in validation loss.")
                 break
+
+        # Clear CUDA cache at the end of each epoch
+        torch.cuda.empty_cache()
 
 def generate_text(initial_text):
     # Load the best model
@@ -279,4 +289,3 @@ if __name__ == "__main__":
         generate_text(initial_text)
     else:
         print("Invalid mode. Please choose 'train' or 'generate'.")
-
