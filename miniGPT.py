@@ -13,7 +13,7 @@ initial_text = "The red fox"  # Initial text to use for generating
 sample_size = 300
 
 # Configuration parameters
-seq_len = 256      # Maximum length of input sequences
+seq_len = 128      # Maximum length of input sequences
 batch_size = 128  # Batch size for training
 dropout = 0.2
 epochs = 200  # Number of training epochs
