@@ -12,7 +12,7 @@ mode = 'train'    # 'train' for training a new model and then generate a sample,
 initial_text = "The red fox"  # Initial text to use for generating
 sample_size = 300
 
-# Configuration parameters
+# Configuration parameters (Carefully tune the hyperparameters and do pre-training checks because GPU memory saturates very quickly)
 seq_len = 128      # Maximum length of input sequences
 batch_size = 128  # Batch size for training
 dropout = 0.2
