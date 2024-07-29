@@ -13,7 +13,7 @@ initial_text = "The red fox"  # Initial text to use for generating
 sample_size = 300
 
 # Configuration parameters (Be careful with increasing parameters because GPU memory saturates very quickly)
-seq_len = 256      # Maximum length of input sequences
+seq_len = 512      # Maximum length of input sequences
 batch_size = 32  # Batch size for training
 dropout = 0.1
 epochs = 200  # Number of training epochs
@@ -23,7 +23,7 @@ patience = 5  # Early stopping patience
 # Configuration parameters for experimentation
 embed_dim = 768  # Embedding dimension for each token
 num_heads = 12  # Number of attention heads
-n_layers = 12  # Number of transformer blocks
+n_layers = 16  # Number of transformer blocks
 
 # Load the WikiText-2 dataset
 dataset = load_dataset("wikitext", "wikitext-2-raw-v1", split={'train': 'train[:80%]', 'test': 'test[:20%]'})
@@ -235,7 +235,7 @@ def train_and_validate():
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             patience_counter = 0
-            torch.save(model.state_dict(), "best_miniature_gpt_model.pth")
+            torch.save(model.state_dict(), "best_miniature_gpt_model3.pth")
         else:
             patience_counter += 1
             if patience_counter >= patience:
@@ -247,7 +247,7 @@ def train_and_validate():
 
 def generate_text(initial_text):
     # Load the best model
-    model.load_state_dict(torch.load("best_miniature_gpt_model.pth"))
+    model.load_state_dict(torch.load("best_miniature_gpt_model3.pth"))
 
     # Generate some sample text with the trained model
     model.eval()
