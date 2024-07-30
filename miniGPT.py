@@ -1,10 +1,11 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from transformers import GPT2Tokenizer
 from datasets import load_dataset
 import numpy as np
+import random
 import time
 
 mode = 'train'    # 'train' for training a new model and then generate a sample, 'generate' for using a trained model to generate sample directly
@@ -14,16 +15,18 @@ sample_size = 300
 
 # Configuration parameters (Be careful with increasing parameters because GPU memory saturates very quickly)
 seq_len = 512      # Maximum length of input sequences
-batch_size = 32  # Batch size for training
+batch_size = 64    # Batch size for training
+train_subset_size = 100000  # Number of training samples to use per epoch
+valid_subset_size = 10000   # Number of validation samples to use per epoch
 dropout = 0.1
-epochs = 200  # Number of training epochs
+epochs = 500  # Number of training epochs
 lr = 3e-5     # Learning rate
 patience = 5  # Early stopping patience
 
 # Configuration parameters for experimentation
-embed_dim = 768  # Embedding dimension for each token
-num_heads = 12  # Number of attention heads
-n_layers = 16  # Number of transformer blocks
+embed_dim = 512  # Embedding dimension for each token
+num_heads = 8  # Number of attention heads
+n_layers = 8  # Number of transformer blocks
 
 # Load the OpenWebText dataset
 dataset = load_dataset("openwebtext", split={'train': 'train[:90%]', 'test': 'train[90%:]'}, trust_remote_code=True)
@@ -63,10 +66,6 @@ def collate_batch(batch, tokenizer):
     lengths = torch.tensor(lengths, dtype=torch.int64)
     return input_ids_list, attention_mask_list, lengths
 
-# DataLoader with custom collate function
-train_iter = DataLoader(dataset['train'], batch_size=batch_size, shuffle=True, collate_fn=lambda x: collate_batch(x, tokenizer))
-valid_iter = DataLoader(dataset['test'], batch_size=batch_size, shuffle=False, collate_fn=lambda x: collate_batch(x, tokenizer))
-
 # Self-attention class with causal masking
 class SelfAttention(nn.Module):
     def __init__(self, embed_dim, num_heads):
@@ -86,7 +85,7 @@ class SelfAttention(nn.Module):
         # Create a causal mask to prevent attending to future tokens
         causal_mask = torch.tril(torch.ones(N, N, device=x.device, dtype=torch.bool)).unsqueeze(0).unsqueeze(0)
         if mask is not None:
-            # Adjust pading mask to get combined with causal mask
+            # Adjust padding mask to get combined with causal mask
             mask = mask.unsqueeze(1).unsqueeze(2).expand(B, 1, N, N)
             # Combining two masks
             combined_mask = mask & causal_mask
@@ -195,6 +194,13 @@ def train_and_validate():
         start_time = time.time()
         model.train()
         train_loss = 0
+        num_batches = 0
+        
+        # Randomly sample a subset of the training data for this epoch
+        train_subset_indices = random.sample(range(len(dataset['train'])), train_subset_size)
+        train_subset = Subset(dataset['train'], train_subset_indices)
+        train_iter = DataLoader(train_subset, batch_size=batch_size, shuffle=True, collate_fn=lambda x: collate_batch(x, tokenizer))
+        
         for x_batch, mask_batch, lengths in train_iter:
             x_batch, mask_batch = x_batch.to(device), mask_batch.to(device)
             optimizer.zero_grad()
@@ -205,11 +211,17 @@ def train_and_validate():
             loss.backward()
             optimizer.step()
             train_loss += loss.item() * x_batch.size(0)
-            
+            num_batches += 1
+
             # Clear CUDA cache
             torch.cuda.empty_cache()
 
         train_loss /= len(train_iter.dataset)
+
+        # Randomly sample a subset of the validation data for this epoch
+        valid_subset_indices = random.sample(range(len(dataset['test'])), valid_subset_size)
+        valid_subset = Subset(dataset['test'], valid_subset_indices)
+        valid_iter = DataLoader(valid_subset, batch_size=batch_size, shuffle=False, collate_fn=lambda x: collate_batch(x, tokenizer))
 
         model.eval()
         val_loss = 0
@@ -235,7 +247,7 @@ def train_and_validate():
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             patience_counter = 0
-            torch.save(model.state_dict(), "best_miniature_gpt_model3.pth")
+            torch.save(model.state_dict(), "best_miniature_gpt_model.pth")
         else:
             patience_counter += 1
             if patience_counter >= patience:
@@ -247,7 +259,7 @@ def train_and_validate():
 
 def generate_text(initial_text):
     # Load the best model
-    model.load_state_dict(torch.load("best_miniature_gpt_model3.pth"))
+    model.load_state_dict(torch.load("best_miniature_gpt_model.pth"))
 
     # Generate some sample text with the trained model
     model.eval()
@@ -260,7 +272,7 @@ def generate_text(initial_text):
 
         for _ in range(sample_size):  # Generate a sample of text of size sample_size
 
-            # Choose the sequance of tokens to use for next prediction
+            # Choose the sequence of tokens to use for next prediction
             tokens_to_use = generated_tokens
             if generated_tokens.size(1) > seq_len:
                 # If generated tokens exceed max seq_len, take the last seq_len tokens
