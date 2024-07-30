@@ -16,8 +16,8 @@ sample_size = 300
 # Configuration parameters (Be careful with increasing parameters because GPU memory saturates very quickly)
 seq_len = 512      # Maximum length of input sequences
 batch_size = 64    # Batch size for training
-train_subset_size = 100000  # Number of training samples to use per epoch
-valid_subset_size = 10000   # Number of validation samples to use per epoch
+train_subset_size = 10000  # Number of training samples to use per epoch to batch from
+valid_subset_size = 1000   # Number of validation samples to use per epoch to batch from
 dropout = 0.1
 epochs = 500  # Number of training epochs
 lr = 3e-5     # Learning rate
