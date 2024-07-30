@@ -25,8 +25,8 @@ embed_dim = 768  # Embedding dimension for each token
 num_heads = 12  # Number of attention heads
 n_layers = 16  # Number of transformer blocks
 
-# Load the WikiText-2 dataset
-dataset = load_dataset("wikitext", "wikitext-2-raw-v1", split={'train': 'train[:80%]', 'test': 'test[:20%]'})
+# Load the OpenWebText dataset
+dataset = load_dataset("openwebtext", split={'train': 'train[:90%]', 'test': 'train[90%:]'}, trust_remote_code=True)
 
 # Load the GPT-2 tokenizer
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
@@ -175,7 +175,7 @@ print(f"Learning Rate: {lr}")
 print(f"Number of Epochs: {epochs}")
 print(f"Early Stopping Patience: {patience}\n")
 
-print("\nTraining on WikiText-2 dataset")
+print("\nTraining on OpenWebText dataset")
 print(f"Vocabulary Size: {vocab_size}")
 print(f"Number of training samples: {len(dataset['train'])}")
 print(f"Number of validation samples: {len(dataset['test'])}")
