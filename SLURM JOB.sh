@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=def-aameer
-#SBATCH --nodes=1                 # Number of nodes
-#SBATCH --gpus-per-node=v100l:4   # Number and type of GPU(s) per node. (This job script doesn't do multiple node communication so keep it 1 node)
+#SBATCH --nodes=1                 # Number of nodes (This job script doesn't do distributed training across nodes yet, so keep it 1 node)
+#SBATCH --gpus-per-node=v100l:4   # Number and type of GPU(s) per node. 
 #SBATCH --ntasks-per-node=8       # CPU cores/threads
 #SBATCH --mem=16G                 # Total memory 
 #SBATCH --time=00-10:00           # time (DD-HH:MM)
