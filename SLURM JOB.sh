@@ -4,7 +4,7 @@
 #SBATCH --nodes=1                 # Number of nodes 
 #SBATCH --gpus-per-node=v100l:4   # Number and type of GPU(s) per node. 
 #SBATCH --ntasks-per-node=8       # CPU cores/threads
-#SBATCH --mem=16G                 # Total memory 
+#SBATCH --mem=64G                 # Total memory 
 #SBATCH --time=00-10:00           # time (DD-HH:MM)
 
 # Variables
