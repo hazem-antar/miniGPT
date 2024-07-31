@@ -20,7 +20,7 @@ train_subset_size = 10000  # Number of training samples to use per epoch
 valid_subset_size = 1000  # Number of validation samples to use per epoch
 dropout = 0.1
 epochs = 1000  # Number of training epochs
-lr = 1e-6     # Learning rate
+lr = 1e-5     # Learning rate
 patience = 10  # Early stopping patience
 
 # Configuration parameters for experimentation
