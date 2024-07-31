@@ -14,22 +14,19 @@ initial_text = "The red fox"  # Initial text to use for generating
 sample_size = 300
 
 # Configuration parameters (Be careful with increasing parameters because GPU memory saturates very quickly)
-seq_len = 512      # Maximum length of input sequences
-batch_size = 64    # Batch size for training
-train_subset_size = 10000  # Number of training samples to use per epoch to batch from
-valid_subset_size = 1000   # Number of validation samples to use per epoch to batch from
+seq_len = 256      # Maximum length of input sequences
+batch_size = 32  # Mini-batch size for training
+train_subset_size = 10000  # Number of training samples to use per epoch
+valid_subset_size = 1000  # Number of validation samples to use per epoch
 dropout = 0.1
-epochs = 500  # Number of training epochs
-lr = 3e-5     # Learning rate
+epochs = 1000  # Number of training epochs
+lr = 1e-6     # Learning rate
 patience = 5  # Early stopping patience
 
 # Configuration parameters for experimentation
-embed_dim = 512  # Embedding dimension for each token
-num_heads = 8  # Number of attention heads
-n_layers = 8  # Number of transformer blocks
-
-# Load the OpenWebText dataset
-dataset = load_dataset("openwebtext", split={'train': 'train[:90%]', 'test': 'train[90%:]'}, trust_remote_code=True)
+embed_dim = 768  # Embedding dimension for each token
+num_heads = 12  # Number of attention heads
+n_layers = 16  # Number of transformer blocks
 
 # Load the GPT-2 tokenizer
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
@@ -169,29 +166,32 @@ print(f"Maximum Sequence Length: {seq_len}")
 print(f"Embedding Dimension: {embed_dim}")
 print(f"Number of Attention Heads: {num_heads}")
 print(f"Number of Layers: {n_layers}")
+print(f"Batch Size: {batch_size}")
 print(f"Train Subset per Epoch: {train_subset_size}")
 print(f"Validation Subset per Epoch: {valid_subset_size}")
-print(f"Batch Size: {batch_size}")
 print(f"Learning Rate: {lr}")
 print(f"Number of Epochs: {epochs}")
 print(f"Early Stopping Patience: {patience}\n")
-
-print("\nTraining on OpenWebText dataset")
-print(f"Vocabulary Size: {vocab_size}")
-print(f"Number of training samples: {len(dataset['train'])}")
-print(f"Number of validation samples: {len(dataset['test'])}")
-print(f"Batch size: {batch_size}")
-print(f"Maximum sequence length: {seq_len}\n")
-
-best_val_loss = float('inf')
-patience_counter = 0
 
 # Create a padding mask for sequences
 def create_padding_mask(seq):
     return (seq != tokenizer.pad_token_id).to(torch.bool)
 
 def train_and_validate():
-    global best_val_loss, patience_counter
+    
+    # Load the OpenWebText dataset
+    dataset = load_dataset("openwebtext", split={'train': 'train[:90%]', 'test': 'train[90%:]'}, trust_remote_code=True)
+    
+    print("\nTraining on OpenWebText dataset")
+    print(f"Vocabulary Size: {vocab_size}")
+    print(f"Number of training samples: {len(dataset['train'])}")
+    print(f"Number of validation samples: {len(dataset['test'])}")
+    print(f"Batch size: {batch_size}")
+    print(f"Maximum sequence length: {seq_len}\n")
+
+    best_val_loss = float('inf')
+    patience_counter = 0
+
     for epoch in range(epochs):
         start_time = time.time()
         model.train()
@@ -259,7 +259,7 @@ def train_and_validate():
         # Clear CUDA cache at the end of each epoch
         torch.cuda.empty_cache()
 
-def generate_text(initial_text):
+def generate_text(initial_text, temperature=0.9, top_k=50):
     # Load the best model
     model.load_state_dict(torch.load("best_miniature_gpt_model.pth"))
 
@@ -282,17 +282,32 @@ def generate_text(initial_text):
             
             # Pad the generated tokens to maxlen
             padded_generated_tokens = torch.cat([tokens_to_use, torch.full((1, seq_len - tokens_to_use.size(1)), tokenizer.pad_token_id, device=device, dtype=torch.long)], dim=1)
-            #print(padded_generated_tokens)
             # Create the padding mask
             mask = create_padding_mask(padded_generated_tokens)
 
+            # Get the logits for the next token prediction
             output = model(padded_generated_tokens, mask)
-            next_token = output[:, tokens_to_use.size(1) - 1, :].argmax(-1).unsqueeze(0)
+            logits = output[:, tokens_to_use.size(1) - 1, :]
+            
+            # Apply temperature scaling to the logits
+            scaled_logits = logits / temperature
+            
+            # Apply top-k sampling
+            top_k_logits, top_k_indices = torch.topk(scaled_logits, top_k)
+            top_k_probs = torch.softmax(top_k_logits, dim=-1).squeeze()  # Remove batch dimension
+            
+            # Sample the next token from the top-k probabilities
+            next_token = top_k_indices[0, torch.multinomial(top_k_probs, 1).item()].unsqueeze(0)
+            
+            # Ensure next_token has the correct shape before concatenation
+            next_token = next_token.unsqueeze(0)  # Shape [1, 1]
+
+            # Append the next token to the generated tokens
             generated_tokens = torch.cat([generated_tokens, next_token], dim=1)
 
+    # Decode the generated tokens to text
     generated_text = tokenizer.decode(generated_tokens.squeeze().tolist(), skip_special_tokens=True)
     print(f"\nGenerated Text:\n {generated_text}")
-
 
 if __name__ == "__main__":
     
