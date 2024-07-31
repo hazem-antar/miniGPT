@@ -14,19 +14,19 @@ initial_text = "The red fox"  # Initial text to use for generating
 sample_size = 300
 
 # Configuration parameters (Be careful with increasing parameters because GPU memory saturates very quickly)
-seq_len = 768      # Maximum length of input sequences
-batch_size = 16  # Mini-batch size for training
+seq_len = 256      # Maximum length of input sequences
+batch_size = 8  # Mini-batch size for training
 train_subset_size = 10000  # Number of training samples to use per epoch
 valid_subset_size = 1000  # Number of validation samples to use per epoch
 dropout = 0.1
 epochs = 1000  # Number of training epochs
 lr = 1e-5     # Learning rate
-patience = 5  # Early stopping patience
+patience = 20  # Early stopping patience
 
 # Configuration parameters for experimentation
 embed_dim = 768  # Embedding dimension for each token
-num_heads = 8  # Number of attention heads
-n_layers = 8  # Number of transformer blocks
+num_heads = 12  # Number of attention heads
+n_layers = 14  # Number of transformer blocks
 
 # Load the GPT-2 tokenizer
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
