@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=def-aameer
+#SBATCH --account=
 #SBATCH --nodes=1                 # Number of nodes
 #SBATCH --gpus-per-node=v100l:4   # Number and type of GPU(s) per node. Check out this link for GPU types in the clusters https://docs.alliancecan.ca/wiki/Using_GPUs_with_Slurm
 #SBATCH --ntasks-per-node=8       # CPU cores/threads
