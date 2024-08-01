@@ -16,6 +16,7 @@ sample_size = 300
 # Configuration parameters (Be careful with increasing parameters because GPU memory saturates very quickly)
 seq_len = 256      # Maximum length of input sequences
 batch_size = 8  # Mini-batch size for training
+gradient_accumulation_steps = 4  # Use gradient accumulation to simulate larger batches
 train_subset_size = 10000  # Number of training samples to use per epoch
 valid_subset_size = 1000  # Number of validation samples to use per epoch
 dropout = 0.1
@@ -203,15 +204,19 @@ def train_and_validate():
         train_subset = Subset(dataset['train'], train_subset_indices)
         train_iter = DataLoader(train_subset, batch_size=batch_size, shuffle=True, collate_fn=lambda x: collate_batch(x, tokenizer))
         
-        for x_batch, mask_batch, lengths in train_iter:
+        for i, (x_batch, mask_batch, lengths) in enumerate(train_iter):
             x_batch, mask_batch = x_batch.to(device), mask_batch.to(device)
-            optimizer.zero_grad()
             outputs = model(x_batch, mask_batch)
             targets = x_batch[:, 1:].contiguous().view(-1)
             outputs = outputs[:, :-1, :].contiguous().view(-1, vocab_size)
             loss = criterion(outputs, targets)
+            loss = loss / gradient_accumulation_steps
             loss.backward()
-            optimizer.step()
+
+            if (i + 1) % gradient_accumulation_steps == 0:
+                optimizer.step()
+                optimizer.zero_grad()
+            
             train_loss += loss.item() * x_batch.size(0)
             num_batches += 1
 
