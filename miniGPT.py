@@ -312,14 +312,19 @@ def generate_text(initial_text, temperature=0.9, top_k=50):
 
     # Decode the generated tokens to text
     generated_text = tokenizer.decode(generated_tokens.squeeze().tolist(), skip_special_tokens=True)
-    print(f"\nGenerated Text:\n {generated_text}")
+    print(generated_text)
 
 if __name__ == "__main__":
     
     if mode == 'train':
         train_and_validate()
+        print(f"\nGenerate Trial {i}: -----------------------------------------\n")
         generate_text(initial_text)
+        print("--------------------------------------------------------------")
     elif mode == 'generate':
-        generate_text(initial_text)
+        for i in range (10):
+            print(f"\nGenerate Trial {i}: -----------------------------------------\n")
+            generate_text(initial_text)
+            print("--------------------------------------------------------------")
     else:
         print("Invalid mode. Please choose 'train' or 'generate'.")
