@@ -217,7 +217,7 @@ def train_and_validate():
                 optimizer.step()
                 optimizer.zero_grad()
             
-            train_loss += loss.item() * x_batch.size(0)
+            train_loss += loss.item() * x_batch.size(0) * gradient_accumulation_steps
             num_batches += 1
 
             # Clear CUDA cache
@@ -238,8 +238,8 @@ def train_and_validate():
                 outputs = model(x_batch, mask_batch)
                 targets = x_batch[:, 1:].contiguous().view(-1)
                 outputs = outputs[:, :-1, :].contiguous().view(-1, vocab_size)
-                loss = criterion(outputs, targets) / gradient_accumulation_steps
-                val_loss += loss.item() * x_batch.size(0)
+                loss = criterion(outputs, targets) 
+                val_loss += loss.item() * x_batch.size(0) 
                 
                 # Clear CUDA cache
                 torch.cuda.empty_cache()
