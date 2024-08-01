@@ -1,11 +1,10 @@
 #!/bin/bash
 #SBATCH --account=def-aameer
-# The current implementation doesn't support distributed training across nodes yet, keep it as 1 node.
-#SBATCH --nodes=1                 # Number of nodes 
-#SBATCH --gpus-per-node=v100l:4   # Number and type of GPU(s) per node. 
+#SBATCH --nodes=1                 # Number of nodes
+#SBATCH --gpus-per-node=v100l:4   # Number and type of GPU(s) per node. Check out this link for GPU types in the clusters https://docs.alliancecan.ca/wiki/Using_GPUs_with_Slurm
 #SBATCH --ntasks-per-node=8       # CPU cores/threads
 #SBATCH --mem=64G                 # Total memory 
-#SBATCH --time=00-10:00           # time (DD-HH:MM)
+#SBATCH --time=01-00:00           # time (DD-HH:MM)
 
 # Variables
 export MAKEFLAGS="-j$(nproc)"
