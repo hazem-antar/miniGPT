@@ -27,7 +27,7 @@ patience = 20  # Early stopping patience
 # Configuration parameters for experimentation
 embed_dim = 768  # Embedding dimension for each token
 num_heads = 12   # Number of attention heads
-n_layers = 16    # Number of transformer blocks
+n_layers = 14    # Number of transformer blocks
 
 # Load the GPT-2 tokenizer
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
