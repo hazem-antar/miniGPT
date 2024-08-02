@@ -36,6 +36,17 @@ tokenizer.pad_token = tokenizer.eos_token  # Define the token for padding
 # Determine the vocabulary size
 vocab_size = tokenizer.vocab_size
 
+# Set random seed for reproducibility
+def set_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+set_seed(42)  # You can choose any integer as the seed
+
 # Function to encode text using the GPT-2 tokenizer
 def encode(text, tokenizer):
     encoded = tokenizer.encode_plus(
