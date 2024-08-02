@@ -330,11 +330,14 @@ if __name__ == "__main__":
     
     if mode == 'train':
         train_and_validate()
-        print(f"\nGenerate Trial {i}: -----------------------------------------\n")
-        generate_text(initial_text)
-        print("--------------------------------------------------------------")
+        for i in range (10):
+            set_seed(i+100)  
+            print(f"\nGenerate Trial {i}: -----------------------------------------\n")
+            generate_text(initial_text)
+            print("--------------------------------------------------------------")
     elif mode == 'generate':
         for i in range (10):
+            set_seed(i+100)  
             print(f"\nGenerate Trial {i}: -----------------------------------------\n")
             generate_text(initial_text)
             print("--------------------------------------------------------------")
