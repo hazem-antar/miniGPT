@@ -171,6 +171,7 @@ print(f"Batch Size: {batch_size}")
 print(f"Train Subset per Epoch: {train_subset_size}")
 print(f"Validation Subset per Epoch: {valid_subset_size}")
 print(f"Learning Rate: {lr}")
+print(f"Gradient Accumulation Steps: {gradient_accumulation_steps}")
 print(f"Number of Epochs: {epochs}")
 print(f"Early Stopping Patience: {patience}\n")
 
