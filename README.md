@@ -96,17 +96,6 @@ EXAMPLE USE CASES
 
 ---
 
-CAVEATS & FUTURE DIRECTIONS
-
-- Memory Footprint: Transformers are memory-intensive. Large seq_len or embed_dim may push GPU limits.
-- OpenWebText: Large and diverse text data may require extensive tuning for optimal performance.
-- HDC Variants: The current code can be extended to explore various ways of encoding queries, keys, and values in a high-dimensional space.
-
----
-
-LICENSE
-
-Distributed under the MIT License (./LICENSE). See the LICENSE file for more details.
 
 ---
 
